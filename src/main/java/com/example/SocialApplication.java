@@ -27,12 +27,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter;
 import org.springframework.security.oauth2.client.filter.OAuth2ClientContextFilter;
 import org.springframework.security.oauth2.client.token.grant.code.AuthorizationCodeResourceDetails;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,7 +42,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.Filter;
+import javax.servlet.http.HttpServletRequest;
+
 import java.security.Principal;
+import java.util.Collections;
+import java.util.Map;
 
 @SpringBootApplication
 @RestController
@@ -58,6 +64,13 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
 		this.oauth2ClientContext = oauth2ClientContext;
 	}
 
+
+	@GetMapping("/user")
+	public Map<String, Object> user(@AuthenticationPrincipal OAuth2User principal) {
+	      return Collections.singletonMap("name", principal.getAttribute("name"));
+	}
+
+	
 	@Autowired
 	public void setGitHubRestTemplate(OAuth2RestTemplate gitHubRestTemplate) {
 		this.gitHubRestTemplate = gitHubRestTemplate;
@@ -113,6 +126,12 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
 		return gitHubFilter;
 	}
 
+	@GetMapping("/error")
+	public String error(HttpServletRequest request) {
+		String message = (String) request.getSession().getAttribute("error.message");
+		request.getSession().removeAttribute("error.message");
+		return message;
+	}
 	@Bean
 	public OAuth2RestTemplate gitHubRestTemplate() {
 		return new OAuth2RestTemplate(gitHub(), oauth2ClientContext);
