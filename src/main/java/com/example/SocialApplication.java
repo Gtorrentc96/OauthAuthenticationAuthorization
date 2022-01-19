@@ -133,6 +133,7 @@ public class SocialApplication extends WebSecurityConfigurerAdapter {
 		return message;
 	}
 	@Bean
+	
 	public OAuth2RestTemplate gitHubRestTemplate() {
 		return new OAuth2RestTemplate(gitHub(), oauth2ClientContext);
 	}
